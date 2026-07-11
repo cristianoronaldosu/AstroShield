@@ -1,0 +1,50 @@
+AstroShield — Conjunction Risk Assessment Model
+Logistic regression model trained on real CubeSat conjunction warning data.
+"""
+
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix
+import joblib
+
+# ── Load dataset ──────────────────────────────────────────────────────────────
+df = pd.read_csv("../data/real_cubesat_dataset.csv")
+
+# Features used for conjunction risk scoring
+FEATURES = [
+    "miss_distance_km",
+    "relative_velocity_km_s",
+    "tca_hours",
+    "nearby_objects_count",
+    "counter_orbit",
+]
+
+X = df[FEATURES].values
+y = df["conjunction_warning"].values
+
+# ── Preprocess ────────────────────────────────────────────────────────────────
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# ── Train ─────────────────────────────────────────────────────────────────────
+model = LogisticRegression(max_iter=1000, random_state=42)
+model.fit(X_train, y_train)
+
+# ── Evaluate ──────────────────────────────────────────────────────────────────
+y_pred = model.predict(X_test)
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# ── Save model ────────────────────────────────────────────────────────────────
+joblib.dump(model, "../results/conjunction_risk_model.pkl")
+joblib.dump(scaler, "../results/scaler.pkl")
+print("Model saved to ../results/")
