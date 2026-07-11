@@ -1,0 +1,53 @@
+AstroShield — Dataset Exploration
+Exploratory analysis of the real CubeSat conjunction dataset.
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ── Load ──────────────────────────────────────────────────────────────────────
+df = pd.read_csv("../data/real_cubesat_dataset.csv")
+
+print("Dataset shape:", df.shape)
+print("\nColumn dtypes:\n", df.dtypes)
+print("\nNull values:\n", df.isnull().sum())
+print("\nClass balance:\n", df["conjunction_warning"].value_counts())
+print("\nSummary statistics:\n", df.describe())
+
+# ── Miss distance distribution ────────────────────────────────────────────────
+fig, axes = plt.subplots(2, 3, figsize=(14, 8))
+fig.suptitle("AstroShield — Feature Distributions", fontsize=14)
+
+features = [
+    ("miss_distance_km", "Miss Distance (km)"),
+    ("relative_velocity_km_s", "Relative Velocity (km/s)"),
+    ("tca_hours", "Time to Closest Approach (hrs)"),
+    ("nearby_objects_count", "Nearby Objects Count"),
+    ("altitude_km", "Altitude (km)"),
+    ("risk_score", "Risk Score"),
+]
+
+for ax, (col, label) in zip(axes.flat, features):
+    df[col].hist(ax=ax, bins=30, color="#4f8ef7", edgecolor="white")
+    ax.set_title(label)
+    ax.set_xlabel(label)
+    ax.set_ylabel("Count")
+
+plt.tight_layout()
+plt.savefig("../results/feature_distributions.png", dpi=150)
+plt.show()
+print("Saved: ../results/feature_distributions.png")
+
+# ── Correlation heatmap ───────────────────────────────────────────────────────
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+corr = df[numeric_cols].corr()
+
+plt.figure(figsize=(9, 7))
+sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", square=True)
+plt.title("Feature Correlation Heatmap")
+plt.tight_layout()
+plt.savefig("../results/correlation_heatmap.png", dpi=150)
+plt.show()
+print("Saved: ../results/correlation_heatmap.png")
