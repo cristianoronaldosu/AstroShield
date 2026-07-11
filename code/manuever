@@ -1,0 +1,75 @@
+"""
+AstroShield — Avoidance Maneuver Recommender
+Given a scored conjunction event, selects the optimal burn method and computes ΔV.
+"""
+
+import numpy as np
+
+# Maneuver types and their typical ΔV ranges (km/s)
+MANEUVER_METHODS = {
+    "prograde":     {"label": "PROGRADE BURN",     "dv_base": 0.12, "dv_risk_scale": 0.10},
+    "retrograde":   {"label": "RETROGRADE BURN",   "dv_base": 0.10, "dv_risk_scale": 0.08},
+    "radial":       {"label": "RADIAL BURN",        "dv_base": 0.14, "dv_risk_scale": 0.12},
+    "plane_change": {"label": "PLANE-CHANGE BURN", "dv_base": 0.16, "dv_risk_scale": 0.14},
+}
+
+
+def select_maneuver(risk_score: float, counter_orbit: bool, relative_velocity: float) -> str:
+    """
+    Select the best burn method based on conjunction geometry.
+    Mirrors the decision logic used in the AstroShield simulation.
+    """
+    if counter_orbit:
+        return "radial" if relative_velocity > 10 else "plane_change"
+    return "prograde" if risk_score > 0.72 else "retrograde"
+
+
+def compute_dv(risk_score: float, method: str) -> float:
+    """Return required delta-V in km/s for the selected maneuver method."""
+    m = MANEUVER_METHODS[method]
+    return m["dv_base"] + risk_score * m["dv_risk_scale"]
+
+
+def recommend(event: dict) -> dict:
+    """
+    Full recommendation pipeline for a single conjunction event.
+
+    Parameters
+    ----------
+    event : dict with keys:
+        risk_score, miss_distance_km, relative_velocity_km_s,
+        tca_hours, counter_orbit (bool)
+
+    Returns
+    -------
+    dict with recommended method, dv_km_s, label, and urgency
+    """
+    method = select_maneuver(
+        event["risk_score"],
+        event["counter_orbit"],
+        event["relative_velocity_km_s"],
+    )
+    dv = compute_dv(event["risk_score"], method)
+    urgency = "CRITICAL" if event["tca_hours"] < 2 else "WARNING" if event["tca_hours"] < 12 else "ADVISORY"
+
+    return {
+        "method": method,
+        "label": MANEUVER_METHODS[method]["label"],
+        "dv_km_s": round(dv, 4),
+        "dv_m_s": round(dv * 1000, 1),
+        "urgency": urgency,
+    }
+
+
+# ── Example ───────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    sample_event = {
+        "risk_score": 0.79,
+        "miss_distance_km": 0.044,
+        "relative_velocity_km_s": 10.877,
+        "tca_hours": 5.7,
+        "counter_orbit": True,
+    }
+    result = recommend(sample_event)
+    print("Conjunction event:", sample_event)
+    print("Recommendation:   ", result)
