@@ -1,10 +1,10 @@
 # AstroShield
 
-AI-powered satellite conjunction risk assessment system that predicts collision probability and recommends avoidance maneuvers for CubeSats in low Earth orbit.
+AI-powered satellite conjunction risk assessment system that predicts collision probability and recommends avoidance maneuvers for CubeSats and small satellites in low Earth orbit.
 
 ## The Problem
 
-Low Earth orbit is increasingly congested, with thousands of active satellites and tens of thousands of debris fragments on intersecting trajectories. CubeSats lack the onboard processing and operator bandwidth to assess conjunction risk in real time. Without automated guidance, a satellite operator may not respond to a close approach until it is too late to execute a safe avoidance burn.
+Low Earth orbit is increasingly congested, with thousands of active satellites and tens of thousands of debris fragments on intersecting trajectories. CubeSats and small satellites lack the onboard processing and operator bandwidth to assess conjunction risk in real time. Without automated guidance, a satellite operator may not respond to a close approach until it is too late to execute a safe avoidance burn.
 
 ## My Solution
 
